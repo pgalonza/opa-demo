@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  postgresql:
+    container_name: postgres
+    image: postgres:14.10
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+    volumes:
+      - ${PWD}/init-postgresql:/docker-entrypoint-initdb.d
+
+  openpolicyagent:
+    container_name: open-policy-agent
+    image: openpolicyagent/opa
+    ports:
+      - "8181:8181"
+    volumes:
+      - ${PWD}/rules:/rules
+    command: [ "run", "--server", "/rules"]
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:17.0.1
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgresql:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8081:8081"
+    command: [ "start-dev", "--http-port=8081" ]
+
